@@ -1,4 +1,4 @@
-```python
+python
 import os
 import time
 import requests
@@ -72,4 +72,3 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Сбой сети, перезапуск через 5 сек... Ошибка: {e}")
             time.sleep(5)
-```

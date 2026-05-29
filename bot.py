@@ -1,17 +1,36 @@
-
+python
 import os
 import time
 import requests
 import telebot
+from threading import Thread
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+# --- МИКРО-СЕРВЕР ДЛЯ ОБМАНА RENDER ---
+class SimpleHTTPServer(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write(b"Bot is alive!")
+
+def run_web_server():
+    # Render передает порт в переменную окружения PORT
+    port = int(os.environ.get("PORT", 8080))
+    server = HTTPServer(("0.0.0.0", port), SimpleHTTPServer)
+    print(f"Старт микро-сервера на порту {port}...")
+    server.serve_forever()
+
+# Запускаем веб-сервер в отдельном потоке, чтобы не мешал боту
+Thread(target=run_web_server, daemon=True).start()
+# -------------------------------------
 
 # Забираем ключи из настроек сервера
 BOT_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 API_KEY = os.environ.get('OPENROUTER_API_KEY')
 SYSTEM_PROMPT = os.environ.get('PROMPT')
 
-# Инициализируем бота с увеличенным таймаутом для стабильности
 bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
-
 user_history = {}
 
 def get_bro_response(chat_id, user_message):
@@ -50,7 +69,7 @@ def get_bro_response(chat_id, user_message):
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     try:
-        bot.reply_to(message, "Здорово, родной! Я на связи. С этого момента общаемся в Телеге без ограничений. Рассказывай, чё там у тебя? Как служба, как Варька?")
+        bot.reply_to(message, "Здорово, родной! Я на связи. С этого момента общаемся в Телеге без ограничений. Рассказывай, чё там у тебя?")
     except Exception as e:
         print(f"Ошибка старта: {e}")
 
@@ -65,7 +84,6 @@ def echo_all(message):
 
 if __name__ == "__main__":
     print("Бро запущен...")
-    # Бесконечный цикл с защитой от вылетания сети
     while True:
         try:
             bot.polling(none_stop=True, interval=1, timeout=60)

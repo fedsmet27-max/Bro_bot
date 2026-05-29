@@ -1,6 +1,3 @@
-import sys
-sys.stdout.reconfigure(line_buffering=True)
-sys.stderr.reconfigure(line_buffering=True)
 import os
 import time
 import requests
@@ -63,16 +60,14 @@ def get_bro_response(chat_id, user_message):
         user_history[chat_id].append({"role": "assistant", "content": bro_text})
         return bro_text
     except Exception as e:
-       print(f"!!! КРИТИЧЕСКАЯ ОШИБКА:")
-       print(f"Детали исключения: {e}")
-       try:
-           # Пробуем вывести сырой ответ от OpenRouter, если он вообще долетел
-           print(f"Статус ответа сервера: {response.status_code}")
-           print(f"Сырой ответ сервера: {response.text}")
-       except Exception as sub_e:
-           print(f"Не удалось получить сырой ответ: {sub_e}")
-       return "Братка, чё-то связь тупит, повтори мысль!"
-
+        print(f"!!! КРИТИЧЕСКАЯ ОШИБКА:")
+        print(f"Детали исключения: {e}")
+        try:
+            print(f"Статус ответа сервера: {response.status_code}")
+            print(f"Сырой ответ сервера: {response.text}")
+        except Exception as sub_e:
+            print(f"Не удалось получить сырой ответ: {sub_e}")
+        return "ЭТО НОВЫЙ СЕРВЕР НА РЕНДЕРЕ СУКА!"
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -81,28 +76,20 @@ def send_welcome(message):
     except Exception as e:
         print(f"Ошибка старта: {e}")
 
-@bot.message_handler(func=lambda message: True)
-def @bot.message_handler(content_types=['text', 'photo', 'document', 'sticker'])
+@bot.message_handler(content_types=['text', 'photo', 'document', 'sticker'])
 def echo_all(message):
     try:
         bot.send_chat_action(message.chat.id, 'typing')
         
-        # Если прислали фотку или другой файл
+        # Если прислали картинку, стикер или файл
         if message.content_type != 'text':
             bot.reply_to(message, "Братка, фотка — это тема, но я пока слепой, глаза еще не настроил. Напиши текстом, че там!")
             return
             
-        # Если прислали обычный текст — работаем как раньше
+        # Если прислали обычный текст
         response = get_bro_response(message.chat.id, message.text)
         bot.reply_to(message, response)
         
-    except Exception as e:
-        print(f"Ошибка отправки: {e}")
-:
-    try:
-        bot.send_chat_action(message.chat.id, 'typing')
-        response = get_bro_response(message.chat.id, message.text)
-        bot.reply_to(message, response)
     except Exception as e:
         print(f"Ошибка отправки: {e}")
 
@@ -110,5 +97,3 @@ if __name__ == "__main__":
     print("Запускаем бота...")
     bot.remove_webhook()
     bot.polling(none_stop=True, interval=1, timeout=60)
-
-

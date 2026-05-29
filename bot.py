@@ -82,7 +82,7 @@ def echo_all(message):
     except Exception as e:
         print(f"Ошибка отправки: {e}")
 
-if __name__ == "__main__":
+
     if __name__ == "__main__":
     print("=== ЗАПУСК БОТА СТАРТОВАЛ ===")
     try:

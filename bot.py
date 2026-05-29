@@ -1,4 +1,3 @@
-
 import os
 import time
 import requests
@@ -15,13 +14,12 @@ class SimpleHTTPServer(BaseHTTPRequestHandler):
         self.wfile.write(b"Bot is alive!")
 
 def run_web_server():
-    # Render передает порт в переменную окружения PORT
     port = int(os.environ.get("PORT", 8080))
     server = HTTPServer(("0.0.0.0", port), SimpleHTTPServer)
     print(f"Старт микро-сервера на порту {port}...")
     server.serve_forever()
 
-# Запускаем веб-сервер в отдельном потоке, чтобы не мешал боту
+# Запускаем веб-сервер в отдельном потоке
 Thread(target=run_web_server, daemon=True).start()
 # -------------------------------------
 
@@ -59,7 +57,6 @@ def get_bro_response(chat_id, user_message):
         response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data, timeout=15)
         result = response.json()
         bro_text = result['choices'][0]['message']['content']
-        
         user_history[chat_id].append({"role": "assistant", "content": bro_text})
         return bro_text
     except Exception as e:
@@ -69,7 +66,7 @@ def get_bro_response(chat_id, user_message):
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     try:
-        bot.reply_to(message, "Здорово, родной! Я на связи. С этого момента общаемся в Телеге без ограничений. Рассказывай, чё там у тебя?")
+        bot.reply_to(message, "Здорово, родной! Я на связи. Рассказывай, чё там у тебя?")
     except Exception as e:
         print(f"Ошибка старта: {e}")
 
@@ -81,13 +78,10 @@ def echo_all(message):
         bot.reply_to(message, response)
     except Exception as e:
         print(f"Ошибка отправки: {e}")
-    if __name__ == "__main__":
-         print("=== ЗАПУСК БОТА СТАРТОВАЛ ===")
-             try:
-             print(f"Пробуем подключиться с токеном: {BOT_TOKEN[:10]}...***") # покажет первые 10 символов токена
-             bot.remove_webhook() # на всякий случай сбрасываем старые вебхуки
-             print("Вебхуки сброшены, запускаем polling...")
-         bot.polling(none_stop=True, interval=1, timeout=60)
-         except Exception as e:
-             print(f"!!! КРИТИЧЕСКАЯ ОШИБКА СТАРТА: {e}")
+
+if __name__ == "__main__":
+    print("Запускаем бота...")
+    bot.remove_webhook()
+    bot.polling(none_stop=True, interval=1, timeout=60)
+
 

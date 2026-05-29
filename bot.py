@@ -82,7 +82,7 @@ def echo_all(message):
     except Exception as e:
         print(f"Ошибка отправки: {e}")
 
-if __main__ == __name__:
+if __name__ == "__main__":
     print("Бро запущен...")
     while True:
         try:

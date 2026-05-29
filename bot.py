@@ -63,8 +63,16 @@ def get_bro_response(chat_id, user_message):
         user_history[chat_id].append({"role": "assistant", "content": bro_text})
         return bro_text
     except Exception as e:
-        print(f"Ошибка OpenRouter: {e}")
-        return "Братка, это тот сервер!"
+       print(f"!!! КРИТИЧЕСКАЯ ОШИБКА:")
+       print(f"Детали исключения: {e}")
+       try:
+           # Пробуем вывести сырой ответ от OpenRouter, если он вообще долетел
+           print(f"Статус ответа сервера: {response.status_code}")
+           print(f"Сырой ответ сервера: {response.text}")
+       except Exception as sub_e:
+           print(f"Не удалось получить сырой ответ: {sub_e}")
+       return "Братка, чё-то связь тупит, повтори мысль!"
+
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):

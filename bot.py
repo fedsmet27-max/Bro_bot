@@ -83,11 +83,11 @@ def echo_all(message):
         print(f"Ошибка отправки: {e}")
     if __name__ == "__main__":
          print("=== ЗАПУСК БОТА СТАРТОВАЛ ===")
-         try:
-        print(f"Пробуем подключиться с токеном: {BOT_TOKEN[:10]}...***") # покажет первые 10 символов токена
-        bot.remove_webhook() # на всякий случай сбрасываем старые вебхуки
-        print("Вебхуки сброшены, запускаем polling...")
+             try:
+             print(f"Пробуем подключиться с токеном: {BOT_TOKEN[:10]}...***") # покажет первые 10 символов токена
+             bot.remove_webhook() # на всякий случай сбрасываем старые вебхуки
+             print("Вебхуки сброшены, запускаем polling...")
          bot.polling(none_stop=True, interval=1, timeout=60)
-     except Exception as e:
-         print(f"!!! КРИТИЧЕСКАЯ ОШИБКА СТАРТА: {e}")
+         except Exception as e:
+             print(f"!!! КРИТИЧЕСКАЯ ОШИБКА СТАРТА: {e}")
 

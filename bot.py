@@ -52,7 +52,7 @@ def get_bro_response(chat_id, user_message):
     }
     
     data = {
-        "model": "mistralai/mistral-7b-instruct:free",
+        "model": "openrouter/auto",
         "messages": messages
     }
     

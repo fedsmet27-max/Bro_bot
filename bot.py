@@ -61,7 +61,7 @@ def get_bro_response(chat_id, user_message):
         return bro_text
     except Exception as e:
         print(f"Ошибка OpenRouter: {e}")
-        return "Братка, чё-то связь тупит, повтори мысль!"
+        return "Братка, это тот сервер!"
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):

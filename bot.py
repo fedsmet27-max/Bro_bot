@@ -91,4 +91,72 @@ def send_welcome(message):
         print(f"Ошибка старта: {e}")
 
 # Обработчик для ГС и кружков
-@bot.messag
+@bot.message_handler(content_types=['voice', 'video_note'])
+def handle_audio_messages(message):
+    try:
+        bot.send_chat_action(message.chat.id, 'record_audio')
+        
+        # Определяем тип медиа и забираем file_id
+        if message.content_type == 'voice':
+            file_id = message.voice.file_id
+            msg_type = "ГС"
+        else:
+            file_id = message.video_note.file_id
+            msg_type = "кружочек"
+            
+        print(f"Получен {msg_type}, скачиваем...")
+        file_info = bot.get_file(file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        
+        # Временно сохраняем аудиофайл на сервере
+        temp_filename = f"temp_{message.chat.id}.ogg"
+        with open(temp_filename, 'wb') as new_file:
+            new_file.write(downloaded_file)
+            
+        bot.reply_to(message, f"Так, брат, поймал твой {msg_type}, сейчас расшифрую, вникаю...")
+        bot.send_chat_action(message.chat.id, 'typing')
+        
+        # Переводим аудио в текст
+        transcribed_text = transcribe_audio(temp_filename)
+        
+        # Удаляем временный файл, чтобы не забивать диск Рендера
+        if os.path.exists(temp_filename):
+            os.remove(temp_filename)
+            
+        if not transcribed_text:
+            bot.reply_to(message, "Братка, чё-то шумно у тебя, не разобрал ни слова. Наговори почётче или черкани текстом!")
+            return
+            
+        print(f"Успешно расшифровано: {transcribed_text}")
+        
+        # Отправляем распознанный текст в ИИ и отвечаем юзеру
+        response = get_bro_response(message.chat.id, f"[Расшифровка моего {msg_type}]: {transcribed_text}")
+        bot.reply_to(message, response)
+        
+    except Exception as e:
+        print(f"Ошибка обработки аудио: {e}")
+        bot.reply_to(message, "Братка, со звуком какая-то лажа произошла, не могу разобрать!")
+
+# Обработчик для фоток, документов и стикеров
+@bot.message_handler(content_types=['photo', 'document', 'sticker'])
+def handle_other_media(message):
+    try:
+        bot.reply_to(message, "Братка, фотки и файлы — это тема, но я пока слепой, глаза еще не настроил. Напиши текстом или наговори ГС/кружок!")
+    except Exception as e:
+        print(f"Ошибка медиа: {e}")
+
+# Обработчик для обычного текста
+@bot.message_handler(content_types=['text'])
+def echo_all(message):
+    try:
+        bot.send_chat_action(message.chat.id, 'typing')
+        response = get_bro_response(message.chat.id, message.text)
+        bot.reply_to(message, response)
+    except Exception as e:
+        print(f"Ошибка отправки: {e}")
+
+if __name__ == "__main__":
+    print("Запускаем бота...")
+    bot.remove_webhook()
+    bot.polling(none_stop=True, interval=1, timeout=60)
+

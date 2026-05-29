@@ -82,7 +82,23 @@ def send_welcome(message):
         print(f"Ошибка старта: {e}")
 
 @bot.message_handler(func=lambda message: True)
+def @bot.message_handler(content_types=['text', 'photo', 'document', 'sticker'])
 def echo_all(message):
+    try:
+        bot.send_chat_action(message.chat.id, 'typing')
+        
+        # Если прислали фотку или другой файл
+        if message.content_type != 'text':
+            bot.reply_to(message, "Братка, фотка — это тема, но я пока слепой, глаза еще не настроил. Напиши текстом, че там!")
+            return
+            
+        # Если прислали обычный текст — работаем как раньше
+        response = get_bro_response(message.chat.id, message.text)
+        bot.reply_to(message, response)
+        
+    except Exception as e:
+        print(f"Ошибка отправки: {e}")
+:
     try:
         bot.send_chat_action(message.chat.id, 'typing')
         response = get_bro_response(message.chat.id, message.text)

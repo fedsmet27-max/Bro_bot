@@ -1,6 +1,6 @@
 import sys
-   sys.stdout.reconfigure(line_buffering=True)
-   sys.stderr.reconfigure(line_buffering=True)
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
 import os
 import time
 import requests

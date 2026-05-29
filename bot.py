@@ -19,11 +19,9 @@ def run_web_server():
     print(f"Старт микро-сервера на порту {port}...")
     server.serve_forever()
 
-# Запускаем веб-сервер в отдельном потоке
 Thread(target=run_web_server, daemon=True).start()
 # -------------------------------------
 
-# Забираем ключи из настроек сервера
 BOT_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 API_KEY = os.environ.get('OPENROUTER_API_KEY')
 SYSTEM_PROMPT = os.environ.get('PROMPT')
@@ -31,13 +29,36 @@ SYSTEM_PROMPT = os.environ.get('PROMPT')
 bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
 user_history = {}
 
+# Функция распознавания голоса через OpenRouter (модель Whisper)
+def transcribe_audio(file_path):
+    headers = {
+        "Authorization": f"Bearer {API_KEY}"
+    }
+    try:
+        with open(file_path, 'rb') as f:
+            files = {
+                'file': ('audio.ogg', f, 'audio/ogg'),
+                'model': (None, 'openai/whisper-large-v3')
+            }
+            # Стучимся на эндпоинт аудио-транскрибации OpenRouter
+            response = requests.post(
+                "https://openrouter.ai/api/v1/audio/transcriptions",
+                headers=headers,
+                files=files,
+                timeout=30
+            )
+            result = response.json()
+            return result.get('text', '')
+    except Exception as e:
+        print(f"Ошибка распознавания голоса: {e}")
+        return ""
+
 def get_bro_response(chat_id, user_message):
     global user_history
     if chat_id not in user_history:
         user_history[chat_id] = []
     
     user_history[chat_id].append({"role": "user", "content": user_message})
-    
     if len(user_history[chat_id]) > 10:
         user_history[chat_id] = user_history[chat_id][-10:]
         
@@ -47,7 +68,6 @@ def get_bro_response(chat_id, user_message):
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
     }
-    
     data = {
         "model": "openrouter/auto",
         "messages": messages
@@ -60,40 +80,15 @@ def get_bro_response(chat_id, user_message):
         user_history[chat_id].append({"role": "assistant", "content": bro_text})
         return bro_text
     except Exception as e:
-        print(f"!!! КРИТИЧЕСКАЯ ОШИБКА:")
-        print(f"Детали исключения: {e}")
-        try:
-            print(f"Статус ответа сервера: {response.status_code}")
-            print(f"Сырой ответ сервера: {response.text}")
-        except Exception as sub_e:
-            print(f"Не удалось получить сырой ответ: {sub_e}")
-        return "ЭТО НОВЫЙ СЕРВЕР НА РЕНДЕРЕ СУКА!"
+        print(f"!!! КРИТИЧЕСКАЯ ОШИБКА OPENROUTER: {e}")
+        return "Братка, чё-то связь тупит, повтори мысль!"
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     try:
-        bot.reply_to(message, "Здорово, родной! Я на связи. Рассказывай, чё там у тебя?")
+        bot.reply_to(message, "Здорово, родной! Я на связи. Можешь писать, накидывать ГС или кружочки — я всё пойму и раскидаю по красоте. Рассказывай, че там у тебя?")
     except Exception as e:
         print(f"Ошибка старта: {e}")
 
-@bot.message_handler(content_types=['text', 'photo', 'document', 'sticker'])
-def echo_all(message):
-    try:
-        bot.send_chat_action(message.chat.id, 'typing')
-        
-        # Если прислали картинку, стикер или файл
-        if message.content_type != 'text':
-            bot.reply_to(message, "Братка, фотка — это тема, но я пока слепой, глаза еще не настроил. Напиши текстом, че там!")
-            return
-            
-        # Если прислали обычный текст
-        response = get_bro_response(message.chat.id, message.text)
-        bot.reply_to(message, response)
-        
-    except Exception as e:
-        print(f"Ошибка отправки: {e}")
-
-if __name__ == "__main__":
-    print("Запускаем бота...")
-    bot.remove_webhook()
-    bot.polling(none_stop=True, interval=1, timeout=60)
+# Обработчик для ГС и кружков
+@bot.messag
